@@ -1,6 +1,8 @@
 import cv2 as cv
 import numpy as np
 import pytesseract
+import re
+import spacy
 
 image = cv.imread("test_id.jpg")
 gray =cv.cvtColor(image, cv.COLOR_BGR2GRAY)
@@ -65,8 +67,40 @@ if id_card_contour is not None:
     )
 
     ocr_text = pytesseract.image_to_string(binary_image, config='--psm 6')
-    print("extracted text")
-    print(ocr_text)
+    # print("extracted text")
+    # print(ocr_text)
+
+    id_count = r"\d{9}"
+    id_pattern = re.search(id_count, ocr_text)
+
+    id_date_count = r"\d{2}/\d{2}/\d{4}"
+    id_date_pattern = re.findall(id_date_count, ocr_text)
+    # print(id_date_pattern, id_pattern)
+    nlp = spacy.load("en_core_web_sm")
+    docs = nlp(ocr_text)
+    extracted_name = "Not Found"
+    for ent in docs.ents:
+        if ent.label_ == "PERSON":
+            if len(ent.text) > 2 and "DRIVER" not in ent.text:
+                extracted_name = ent.text
+                break
+    if extracted_name == "Not Found":
+        uppercase_words = re.findall(r"[A-Z]{3,}", ocr_text)
+        ignore_list = ["DRIVER", "LICENSE", "DOB", "EXP", "SEX", "CLASS", "ANYTOWN", "ANYSTREET"]
+        possible_names = [word for word in uppercase_words if word not in ignore_list]
+        
+        if possible_names:
+            extracted_name = " ".join(possible_names[:2])
+
+    kyc_profile = {
+        "Document Type": "Driver License" if "DRIVER" in ocr_text.upper() else "Unknown",
+        "Extracted Name": extracted_name,
+        "ID Number": id_pattern.group(0) if id_pattern else "Not Found",
+        "Dates Found": id_date_pattern if id_date_pattern else "Not Found"
+    }
+    print("FINAL STRUCTURED KYC PROFILE")
+    for key, value in kyc_profile.items():
+        print(f"{key}: {value}")
     cv.imshow('smooth', binary_image)
     key = cv.waitKey(0)
     print("key to press : ", key)
