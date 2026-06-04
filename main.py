@@ -1,5 +1,6 @@
 import cv2 as cv
 import numpy as np
+import pytesseract
 
 image = cv.imread("test_id.jpg")
 gray =cv.cvtColor(image, cv.COLOR_BGR2GRAY)
@@ -20,40 +21,56 @@ for contour in contours:
         break
 if id_card_contour is not None:
     cv.drawContours(image, [id_card_contour], -1, (0, 255, 0), 3)
-    print("ID Card Detected!")
-else:
-    print("No ID Card Found!")
+    print("ID card detected")
 
-pts = id_card_contour.reshape(4, 2)
+    pts = id_card_contour.reshape(4, 2)
+    def order_points(pts):
+        rect = np.zeros((4, 2), dtype="float32")
+        s = pts.sum(axis=1)
+        rect[0] = pts[np.argmin(s)]
+        rect[2] = pts[np.argmax(s)]
 
-def order_points(pts):
-    rect = np.zeros((4, 2), dtype="float32")
-    s = pts.sum(axis=1)
-    rect[0] = pts[np.argmin(s)]
-    rect[2] = pts[np.argmax(s)]
+        diff = np.diff(pts, axis=1)
+        rect[1] = pts[np.argmin(diff)]
+        rect[3] = pts[np.argmax(diff)]
+        return rect
 
-    diff = np.diff(pts, axis=1)
-    rect[1] = pts[np.argmin(diff)]
-    rect[3] = pts[np.argmax(diff)]
-    return rect
+    rect = order_points(pts)
+    tl, tr, br, bl = rect
 
-rect = order_points(pts)
-tl, tr, br, bl = rect
+    width1 = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
+    width2 = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
+    max_width = max(int(width1), int(width2))
 
-width1 = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
-width2 = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
-max_width = max(int(width1), int(width2))
-
-height1 = np.sqrt(((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
-height2 = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
-max_height = max(int(height1), int(height2))
+    height1 = np.sqrt(((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
+    height2 = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
+    max_height = max(int(height1), int(height2))
     # setA is messy setB is clean/flat
-setA = np.array([tl, tr, br, bl], dtype="float32")
-setB = np.array([[0,0], [max_width-1, 0], [max_width-1, max_height-1], [0, max_height-1]], dtype="float32")
+    setA = np.array([tl, tr, br, bl], dtype="float32")
+    setB = np.array([[0,0], [max_width-1, 0], [max_width-1, max_height-1], [0, max_height-1]], dtype="float32")
 
-matrix = cv.getPerspectiveTransform(setA, setB)
-warped_image = cv.warpPerspective(image, matrix, (max_width, max_height))
-cv.imshow('smooth', warped_image)
-key = cv.waitKey(0)
-print("key to press : ", key)
-cv.destroyAllWindows()
+    matrix = cv.getPerspectiveTransform(setA, setB)
+    warped_image = cv.warpPerspective(image, matrix, (max_width, max_height))
+
+    warped_gray = cv.cvtColor(warped_image, cv.COLOR_BGR2GRAY)
+    warped_blur = cv.GaussianBlur(warped_gray, (3,3), 0)
+
+    binary_image = cv.adaptiveThreshold(
+        src= warped_blur,
+        maxValue=255,
+        adaptiveMethod=cv.ADAPTIVE_THRESH_GAUSSIAN_C,
+        thresholdType=cv.THRESH_BINARY,
+        blockSize=11,
+        C=5
+    )
+
+    ocr_text = pytesseract.image_to_string(binary_image, config='--psm 6')
+    print("extracted text")
+    print(ocr_text)
+    cv.imshow('smooth', binary_image)
+    key = cv.waitKey(0)
+    print("key to press : ", key)
+    cv.destroyAllWindows()
+
+else:
+    print("no ID card found")
