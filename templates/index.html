@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VeriDoc — KYC Verification</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0b0e;
+      --surface: #111318;
+      --card: #16181f;
+      --border: #23262f;
+      --border-glow: #2ee8a0;
+      --accent: #2ee8a0;
+      --accent2: #7b61ff;
+      --accent3: #ff6b6b;
+      --text: #e8eaf0;
+      --text-muted: #6b7280;
+      --text-dim: #3d4250;
+      --mono: 'DM Mono', monospace;
+      --sans: 'Syne', sans-serif;
+      --radius: 12px;
+      --radius-lg: 20px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(46,232,160,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(46,232,160,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .noise {
+      position: fixed;
+      inset: 0;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 60px 24px 100px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 64px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-mark {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 800;
+      color: #000;
+    }
+
+    .logo-text {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-text span { color: var(--accent); }
+
+    .badge {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--accent);
+      background: rgba(46,232,160,0.08);
+      border: 1px solid rgba(46,232,160,0.2);
+      padding: 4px 10px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    /* Hero */
+    .hero {
+      margin-bottom: 48px;
+    }
+
+    .hero h1 {
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 .hl {
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 15px;
+      color: var(--text-muted);
+      max-width: 500px;
+      line-height: 1.7;
+      font-weight: 400;
+    }
+
+    /* Upload zone */
+    .upload-card {
+      background: var(--card);
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-lg);
+      padding: 48px 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      position: relative;
+      margin-bottom: 32px;
+    }
+
+    .upload-card:hover, .upload-card.drag-over {
+      border-color: var(--accent);
+      background: rgba(46,232,160,0.03);
+    }
+
+    .upload-card input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .upload-icon {
+      width: 56px;
+      height: 56px;
+      background: rgba(46,232,160,0.1);
+      border: 1px solid rgba(46,232,160,0.25);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 24px;
+    }
+
+    .upload-card h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .upload-card p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .upload-hint {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.5px;
+    }
+
+    /* Preview */
+    #preview-wrap {
+      display: none;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    #preview-wrap img {
+      width: 100%;
+      max-height: 240px;
+      object-fit: contain;
+      border-radius: 10px;
+      display: block;
+    }
+
+    .preview-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .remove-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 28px;
+      height: 28px;
+      background: rgba(255,107,107,0.15);
+      border: 1px solid rgba(255,107,107,0.3);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--accent3);
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    .remove-btn:hover { background: rgba(255,107,107,0.3); }
+
+    /* Button */
+    .btn-verify {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--accent), #1cc47a);
+      color: #000;
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 700;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      transition: opacity 0.2s, transform 0.15s;
+      margin-bottom: 32px;
+    }
+
+    .btn-verify:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
+    .btn-verify:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    /* Loading */
+    #loading {
+      display: none;
+      text-align: center;
+      padding: 48px 0;
+    }
+
+    .spinner-ring {
+      width: 48px;
+      height: 48px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #loading p {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* Results */
+    #results {
+      display: none;
+      animation: fadeUp 0.4s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .results-header h3 {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 20px;
+    }
+
+    .status-pill.success {
+      background: rgba(46,232,160,0.1);
+      border: 1px solid rgba(46,232,160,0.25);
+      color: var(--accent);
+    }
+
+    .status-pill.error {
+      background: rgba(255,107,107,0.1);
+      border: 1px solid rgba(255,107,107,0.25);
+      color: var(--accent3);
+    }
+
+    .dot { width: 7px; height: 7px; border-radius: 50%; }
+    .dot.green { background: var(--accent); animation: pulse 2s infinite; }
+    .dot.red { background: var(--accent3); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* KYC Grid */
+    .kyc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 560px) { .kyc-grid { grid-template-columns: 1fr; } }
+
+    .kyc-field {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      transition: border-color 0.2s;
+    }
+
+    .kyc-field:hover { border-color: rgba(46,232,160,0.3); }
+
+    .kyc-field .field-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      margin-bottom: 8px;
+    }
+
+    .kyc-field .field-value {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      word-break: break-all;
+    }
+
+    .kyc-field .field-value.found { color: var(--text); }
+    .kyc-field .field-value.not-found { color: var(--text-dim); font-style: italic; font-weight: 400; }
+
+    .kyc-field.accent-border { border-left: 3px solid var(--accent); }
+    .kyc-field.accent2-border { border-left: 3px solid var(--accent2); }
+
+    /* Processing time */
+    .meta-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .meta-chip {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    /* Raw text toggle */
+    .raw-toggle {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+      margin-bottom: 8px;
+      transition: border-color 0.2s, color 0.2s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .raw-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+    #raw-text-box {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.8;
+      white-space: pre-wrap;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-bottom: 16px;
+    }
+
+    /* Error message */
+    #error-box {
+      display: none;
+      background: rgba(255,107,107,0.08);
+      border: 1px solid rgba(255,107,107,0.3);
+      border-radius: var(--radius);
+      padding: 20px;
+      color: var(--accent3);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    /* Reset */
+    .btn-reset {
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+      margin-top: 8px;
+    }
+
+    .btn-reset:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      margin-top: 80px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+  </style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="container">
+
+  <header>
+    <div class="logo">
+      <div class="logo-mark">V</div>
+      <div class="logo-text">Veri<span>Doc</span></div>
+    </div>
+    <div class="badge">KYC v1.0</div>
+  </header>
+
+  <div class="hero">
+    <h1>Automated <span class="hl">ID Verification</span><br />in Seconds</h1>
+    <p>Upload a photo of a government-issued ID. Our pipeline extracts name, ID number, dates & address using OCR + spaCy NER.</p>
+  </div>
+
+  <!-- Upload Zone -->
+  <div class="upload-card" id="drop-zone">
+    <input type="file" id="file-input" accept="image/jpeg,image/png" />
+    <div class="upload-icon">🪪</div>
+    <h2>Drop your ID here</h2>
+    <p>Supports Driver License, Passport, Aadhaar, PAN Card</p>
+    <div class="upload-hint">JPG / PNG &nbsp;·&nbsp; max 10 MB</div>
+  </div>
+
+  <!-- Preview -->
+  <div id="preview-wrap">
+    <div class="preview-label">Selected Document</div>
+    <img id="preview-img" src="" alt="ID Preview" />
+    <button class="remove-btn" id="remove-btn" title="Remove">✕</button>
+  </div>
+
+  <!-- Verify Button -->
+  <button class="btn-verify" id="verify-btn" disabled>
+    ⚡ Run KYC Verification
+  </button>
+
+  <!-- Loading -->
+  <div id="loading">
+    <div class="spinner-ring"></div>
+    <p>Processing document...</p>
+  </div>
+
+  <!-- Error -->
+  <div id="error-box"></div>
+
+  <!-- Results -->
+  <div id="results">
+    <div class="results-header">
+      <h3>Extracted KYC Profile</h3>
+      <div class="status-pill success" id="status-pill">
+        <div class="dot green"></div>
+        <span>Verified</span>
+      </div>
+    </div>
+
+    <div class="meta-row">
+      <div class="meta-chip" id="doc-type-chip">📄 Unknown</div>
+      <div class="meta-chip" id="card-chip">🔍 Card detected</div>
+      <div class="meta-chip" id="time-chip">⏱ 0 ms</div>
+    </div>
+
+    <div class="kyc-grid">
+      <div class="kyc-field accent-border">
+        <div class="field-label">Full Name</div>
+        <div class="field-value" id="res-name">—</div>
+      </div>
+      <div class="kyc-field accent2-border">
+        <div class="field-label">ID Number</div>
+        <div class="field-value" id="res-id">—</div>
+      </div>
+      <div class="kyc-field">
+        <div class="field-label">Dates Found (DOB / Expiry)</div>
+        <div class="field-value" id="res-dates">—</div>
+      </div>
+      <div class="kyc-field">
+        <div class="field-label">Address</div>
+        <div class="field-value" id="res-address">—</div>
+      </div>
+    </div>
+
+    <!-- Raw OCR toggle -->
+    <button class="raw-toggle" id="raw-toggle">
+      <span>Raw OCR Text</span>
+      <span id="raw-arrow">▼</span>
+    </button>
+    <pre id="raw-text-box"></pre>
+
+    <button class="btn-reset" id="reset-btn">↺ Verify Another Document</button>
+  </div>
+
+  <footer>VeriDoc · Powered by OpenCV · Tesseract · spaCy &nbsp;·&nbsp; Local processing only</footer>
+</div>
+
+<script>
+  const API_URL = 'http://localhost:8000/verify';
+
+  const dropZone   = document.getElementById('drop-zone');
+  const fileInput  = document.getElementById('file-input');
+  const previewWrap = document.getElementById('preview-wrap');
+  const previewImg  = document.getElementById('preview-img');
+  const removeBtn  = document.getElementById('remove-btn');
+  const verifyBtn  = document.getElementById('verify-btn');
+  const loading    = document.getElementById('loading');
+  const errorBox   = document.getElementById('error-box');
+  const results    = document.getElementById('results');
+  const rawToggle  = document.getElementById('raw-toggle');
+  const rawTextBox = document.getElementById('raw-text-box');
+  const rawArrow   = document.getElementById('raw-arrow');
+  const resetBtn   = document.getElementById('reset-btn');
+
+  let selectedFile = null;
+
+  // Drag & drop highlight
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if (f) handleFile(f);
+  });
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) handleFile(fileInput.files[0]);
+  });
+
+  function handleFile(file) {
+    if (!file.type.startsWith('image/')) {
+      showError('Please upload a JPG or PNG image.');
+      return;
+    }
+    selectedFile = file;
+    const reader = new FileReader();
+    reader.onload = e => {
+      previewImg.src = e.target.result;
+      previewWrap.style.display = 'block';
+      dropZone.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+    verifyBtn.disabled = false;
+    clearResults();
+  }
+
+  removeBtn.addEventListener('click', resetAll);
+  resetBtn.addEventListener('click', resetAll);
+
+  function resetAll() {
+    selectedFile = null;
+    fileInput.value = '';
+    previewImg.src = '';
+    previewWrap.style.display = 'none';
+    dropZone.style.display = 'block';
+    verifyBtn.disabled = true;
+    results.style.display = 'none';
+    errorBox.style.display = 'none';
+    rawTextBox.style.display = 'none';
+    rawArrow.textContent = '▼';
+  }
+
+  function clearResults() {
+    results.style.display = 'none';
+    errorBox.style.display = 'none';
+  }
+
+  verifyBtn.addEventListener('click', async () => {
+    if (!selectedFile) return;
+
+    clearResults();
+    loading.style.display = 'block';
+    verifyBtn.disabled = true;
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+
+    try {
+      const res = await fetch(API_URL, { method: 'POST', body: formData });
+      const data = await res.json();
+      loading.style.display = 'none';
+
+      if (!res.ok || !data.success) {
+        showError(data.error || data.detail || 'Verification failed. Please try again.');
+        return;
+      }
+
+      renderResults(data);
+    } catch (err) {
+      loading.style.display = 'none';
+      showError('Could not reach the API. Make sure the backend is running on http://localhost:8000');
+    } finally {
+      verifyBtn.disabled = false;
+    }
+  });
+
+  function renderResults(d) {
+    // Status
+    const pill = document.getElementById('status-pill');
+    pill.className = 'status-pill success';
+    pill.innerHTML = '<div class="dot green"></div><span>Verified</span>';
+
+    // Meta chips
+    document.getElementById('doc-type-chip').textContent = '📄 ' + (d.document_type || 'Unknown');
+    document.getElementById('card-chip').textContent = d.card_detected ? '🔍 Card boundary detected' : '🔍 Full image used';
+    document.getElementById('time-chip').textContent = `⏱ ${d.processing_time_ms} ms`;
+
+    // Fields
+    setField('res-name',    d.extracted_name);
+    setField('res-id',      d.id_number);
+    setField('res-dates',   d.dates_found && d.dates_found.length ? d.dates_found.join('  ·  ') : null);
+    setField('res-address', d.address);
+
+    // Raw OCR
+    rawTextBox.textContent = d.raw_text || '(empty)';
+
+    results.style.display = 'block';
+  }
+
+  function setField(id, value) {
+    const el = document.getElementById(id);
+    if (!value || value === 'Not Found') {
+      el.textContent = 'Not found';
+      el.className = 'field-value not-found';
+    } else {
+      el.textContent = value;
+      el.className = 'field-value found';
+    }
+  }
+
+  function showError(msg) {
+    errorBox.style.display = 'block';
+    errorBox.innerHTML = `<strong>⚠ Error</strong><br />${msg}`;
+  }
+
+  rawToggle.addEventListener('click', () => {
+    const open = rawTextBox.style.display === 'block';
+    rawTextBox.style.display = open ? 'none' : 'block';
+    rawArrow.textContent = open ? '▼' : '▲';
+  });
+</script>
+</body>
+</html>
