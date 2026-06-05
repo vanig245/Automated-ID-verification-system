@@ -1,6 +1,6 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel
 from typing import Optional, List
 import base64
@@ -37,7 +37,7 @@ class KYCResponse(BaseModel):
 
 @app.get("/")
 async def root():
-    return {"message": "KYC ID Verification API is running. POST /verify to process an ID."}
+    return FileResponse("templates/index.html")
 
 
 @app.get("/health")
