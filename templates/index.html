@@ -35,7 +35,6 @@
       overflow-x: hidden;
     }
 
-    /* Grid background */
     body::before {
       content: '';
       position: fixed;
@@ -247,7 +246,6 @@
 
     .remove-btn:hover { background: rgba(255,107,107,0.3); }
 
-    /* Button */
     .btn-verify {
       width: 100%;
       padding: 16px;
@@ -267,7 +265,6 @@
     .btn-verify:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
     .btn-verify:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
-    /* Loading */
     #loading {
       display: none;
       text-align: center;
@@ -348,7 +345,6 @@
       50% { opacity: 0.4; }
     }
 
-    /* KYC Grid */
     .kyc-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -390,7 +386,6 @@
     .kyc-field.accent-border { border-left: 3px solid var(--accent); }
     .kyc-field.accent2-border { border-left: 3px solid var(--accent2); }
 
-    /* Processing time */
     .meta-row {
       display: flex;
       gap: 12px;
@@ -445,7 +440,6 @@
       margin-bottom: 16px;
     }
 
-    /* Error message */
     #error-box {
       display: none;
       background: rgba(255,107,107,0.08);
@@ -456,8 +450,6 @@
       font-size: 14px;
       margin-bottom: 24px;
     }
-
-    /* Reset */
     .btn-reset {
       width: 100%;
       padding: 12px;
@@ -474,8 +466,6 @@
     }
 
     .btn-reset:hover { border-color: var(--accent); color: var(--accent); }
-
-    /* Footer */
     footer {
       text-align: center;
       margin-top: 80px;
@@ -494,7 +484,7 @@
       <div class="logo-mark">V</div>
       <div class="logo-text">Veri<span>Doc</span></div>
     </div>
-    <div class="badge">KYC v1.0</div>
+    <div class="badge">KYC</div>
   </header>
 
   <div class="hero">
@@ -502,37 +492,31 @@
     <p>Upload a photo of a government-issued ID. Our pipeline extracts name, ID number, dates & address using OCR + spaCy NER.</p>
   </div>
 
-  <!-- Upload Zone -->
   <div class="upload-card" id="drop-zone">
     <input type="file" id="file-input" accept="image/jpeg,image/png" />
     <div class="upload-icon">🪪</div>
     <h2>Drop your ID here</h2>
-    <p>Supports Driver License, Passport, Aadhaar, PAN Card</p>
+    <p>Supports Aadhaar Card</p>
     <div class="upload-hint">JPG / PNG &nbsp;·&nbsp; max 10 MB</div>
   </div>
 
-  <!-- Preview -->
   <div id="preview-wrap">
     <div class="preview-label">Selected Document</div>
     <img id="preview-img" src="" alt="ID Preview" />
     <button class="remove-btn" id="remove-btn" title="Remove">✕</button>
   </div>
 
-  <!-- Verify Button -->
   <button class="btn-verify" id="verify-btn" disabled>
-    ⚡ Run KYC Verification
+     Run KYC Verification
   </button>
 
-  <!-- Loading -->
   <div id="loading">
     <div class="spinner-ring"></div>
     <p>Processing document...</p>
   </div>
 
-  <!-- Error -->
   <div id="error-box"></div>
 
-  <!-- Results -->
   <div id="results">
     <div class="results-header">
       <h3>Extracted KYC Profile</h3>
@@ -543,9 +527,9 @@
     </div>
 
     <div class="meta-row">
-      <div class="meta-chip" id="doc-type-chip">📄 Unknown</div>
-      <div class="meta-chip" id="card-chip">🔍 Card detected</div>
-      <div class="meta-chip" id="time-chip">⏱ 0 ms</div>
+      <div class="meta-chip" id="doc-type-chip">Unknown</div>
+      <div class="meta-chip" id="card-chip"> Card detected</div>
+      <div class="meta-chip" id="time-chip"> 0 ms</div>
     </div>
 
     <div class="kyc-grid">
@@ -558,7 +542,7 @@
         <div class="field-value" id="res-id">—</div>
       </div>
       <div class="kyc-field">
-        <div class="field-label">Dates Found (DOB / Expiry)</div>
+        <div class="field-label">Dates Found (DOB)</div>
         <div class="field-value" id="res-dates">—</div>
       </div>
       <div class="kyc-field">
@@ -567,14 +551,13 @@
       </div>
     </div>
 
-    <!-- Raw OCR toggle -->
     <button class="raw-toggle" id="raw-toggle">
       <span>Raw OCR Text</span>
       <span id="raw-arrow">▼</span>
     </button>
     <pre id="raw-text-box"></pre>
 
-    <button class="btn-reset" id="reset-btn">↺ Verify Another Document</button>
+    <button class="btn-reset" id="reset-btn"> Verify Another Document</button>
   </div>
 
   <footer>VeriDoc · Powered by OpenCV · Tesseract · spaCy &nbsp;·&nbsp; Local processing only</footer>
@@ -599,7 +582,6 @@
 
   let selectedFile = null;
 
-  // Drag & drop highlight
   dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
   dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
   dropZone.addEventListener('drop', e => {
@@ -681,23 +663,20 @@
   });
 
   function renderResults(d) {
-    // Status
+
     const pill = document.getElementById('status-pill');
     pill.className = 'status-pill success';
     pill.innerHTML = '<div class="dot green"></div><span>Verified</span>';
 
-    // Meta chips
-    document.getElementById('doc-type-chip').textContent = '📄 ' + (d.document_type || 'Unknown');
-    document.getElementById('card-chip').textContent = d.card_detected ? '🔍 Card boundary detected' : '🔍 Full image used';
-    document.getElementById('time-chip').textContent = `⏱ ${d.processing_time_ms} ms`;
+    document.getElementById('doc-type-chip').textContent = ' ' + (d.document_type || 'Unknown');
+    document.getElementById('card-chip').textContent = d.card_detected ? ' Card boundary detected' : ' Full image used';
+    document.getElementById('time-chip').textContent = ` ${d.processing_time_ms} ms`;
 
-    // Fields
     setField('res-name',    d.extracted_name);
     setField('res-id',      d.id_number);
     setField('res-dates',   d.dates_found && d.dates_found.length ? d.dates_found.join('  ·  ') : null);
     setField('res-address', d.address);
 
-    // Raw OCR
     rawTextBox.textContent = d.raw_text || '(empty)';
 
     results.style.display = 'block';
@@ -716,7 +695,7 @@
 
   function showError(msg) {
     errorBox.style.display = 'block';
-    errorBox.innerHTML = `<strong>⚠ Error</strong><br />${msg}`;
+    errorBox.innerHTML = `<strong>Error</strong><br />${msg}`;
   }
 
   rawToggle.addEventListener('click', () => {
