@@ -131,18 +131,11 @@ def process_id_image(image_bytes: bytes) -> dict:
     else:
         doc_type = "Unknown"
 
-    address_match = re.search(
-        r"(?:C/O|W/O|D/O|S/O)?[^\n]+",
-        ocr_text,
-        re.IGNORECASE,
-    )
-
     return {
         "document_type": doc_type,
         "extracted_name": extracted_name,
         "id_number": id_pattern.group(0) if id_pattern else "Not Found",
         "dates_found": id_date_pattern if id_date_pattern else [],
-        "address": address_match.group(0).strip() if address_match else "Not Found",
         "raw_text": ocr_text,
         "card_detected": card_detected,
     }

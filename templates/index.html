@@ -489,7 +489,7 @@
 
   <div class="hero">
     <h1>Automated <span class="hl">ID Verification</span><br />in Seconds</h1>
-    <p>Upload a photo of a government-issued ID. Our pipeline extracts name, ID number, dates & address using OCR + spaCy NER.</p>
+    <p>Upload a photo of a government-issued ID. Our pipeline extracts name, ID number, DOB using OCR + spaCy NER.</p>
   </div>
 
   <div class="upload-card" id="drop-zone">
@@ -544,11 +544,6 @@
       <div class="kyc-field">
         <div class="field-label">Dates Found (DOB)</div>
         <div class="field-value" id="res-dates">—</div>
-      </div>
-      <div class="kyc-field">
-        <div class="field-label">Address</div>
-        <div class="field-value" id="res-address">—</div>
-      </div>
     </div>
 
     <button class="raw-toggle" id="raw-toggle">
@@ -675,7 +670,6 @@
     setField('res-name',    d.extracted_name);
     setField('res-id',      d.id_number);
     setField('res-dates',   d.dates_found && d.dates_found.length ? d.dates_found.join('  ·  ') : null);
-    setField('res-address', d.address);
 
     rawTextBox.textContent = d.raw_text || '(empty)';
 

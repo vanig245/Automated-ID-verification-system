@@ -29,7 +29,7 @@ class KYCResponse(BaseModel):
     extracted_name: str
     id_number: str
     dates_found: List[str]
-    address: str
+    # address: str
     card_detected: bool
     raw_text: Optional[str] = None
     error: Optional[str] = None
@@ -72,7 +72,6 @@ async def verify_id(file: UploadFile = File(...)):
                 "extracted_name": "Not Found",
                 "id_number": "Not Found",
                 "dates_found": [],
-                "address": "Not Found",
                 "card_detected": False,
             },
         )
@@ -84,7 +83,6 @@ async def verify_id(file: UploadFile = File(...)):
         extracted_name=result.get("extracted_name", "Not Found"),
         id_number=result.get("id_number", "Not Found"),
         dates_found=result.get("dates_found", []),
-        address=result.get("address", "Not Found"),
         card_detected=result.get("card_detected", False),
         raw_text=result.get("raw_text", ""),
     )
