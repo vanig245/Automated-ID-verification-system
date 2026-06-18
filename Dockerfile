@@ -8,13 +8,15 @@ WORKDIR /code
 COPY ./requirements.txt /code/requirements.txt
 
 #run
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 #copy
-./app /code/app
+COPY ./app /code/app
+COPY ./templates /code/templates
+COPY ./process.py/ code/process.py
 
-#port 
-EXPOSE 8000
+#expose
+EXPOSE 80
 
 #command
-CMD ["fastapi", "run", "./main.py", "--port", "80"]
+CMD ["fastapi", "run", "app/main.py", "--port", "80"]
