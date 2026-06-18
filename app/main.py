@@ -6,7 +6,7 @@ from typing import Optional, List
 import base64
 import time
 
-from process import process_id_image
+from app.process import process_id_image
 
 app = FastAPI(
     title="KYC ID Verification API",

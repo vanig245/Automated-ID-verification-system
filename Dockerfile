@@ -1,5 +1,5 @@
 #base image
-FROM python:3.14
+FROM python:3.12-slim
 
 #working dir
 WORKDIR /code
