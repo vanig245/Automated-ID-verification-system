@@ -99,7 +99,7 @@ def process_id_image(image_bytes: bytes) -> dict:
     ocr_text = pytesseract.image_to_string(binary_image, config="--psm 11")
 
     id_pattern = re.search(r"\d{4}\s\d{4}\s\d{4}|\d{12}", ocr_text)
-    id_date_pattern = re.findall(r"\d{2}/\d{2}/\d{4}", ocr_text)
+    id_date_pattern = re.findall(r"(?:0[1-9]|[12][0-9]|3[01])(?:/|-)(?:0[1-9]|1[0-2])(?:/|-)(?:19|20)\d{2}", ocr_text)
 
     extracted_name = "Not Found"
     doc = nlp(ocr_text)
@@ -111,7 +111,7 @@ def process_id_image(image_bytes: bytes) -> dict:
 
     if extracted_name == "Not Found":
         ignore_list = [
-            "GOVERNMENT", "INDIA", "UNIQUE", "IDENTIFICATION", "AUTHORITY",
+            "GOVERNMENT", "INDIA", "UNIQUE", "IDENTIFICATION", "AUTHORITY", "AADHAAR",
             "MALE", "FEMALE", "DOB", "YEAR", "ENROLLMENT", "HUSBAND", "WIFE", "FATHER"
         ]
         uppercase_words = re.findall(r"[A-Z]{3,}", ocr_text)
@@ -122,12 +122,12 @@ def process_id_image(image_bytes: bytes) -> dict:
     upper_text = ocr_text.upper()
     if "UNIQUE IDENTIFICATION" in upper_text or "GOVERNMENT OF INDIA" in upper_text or "AADHAAR" in upper_text or "AADHAR" in upper_text:
         doc_type = "Aadhaar Card"
-    elif "DRIVER" in upper_text or "LICENSE" in upper_text:
-        doc_type = "Driver License"
-    elif "PASSPORT" in upper_text:
-        doc_type = "Passport"
-    elif "INCOME TAX" in upper_text or "PAN" in upper_text:
-        doc_type = "PAN Card"
+    # elif "DRIVER" in upper_text or "LICENSE" in upper_text:
+    #     doc_type = "Driver License"
+    # elif "PASSPORT" in upper_text:
+    #     doc_type = "Passport"
+    # elif "INCOME TAX" in upper_text or "PAN" in upper_text:
+    #     doc_type = "PAN Card"
     else:
         doc_type = "Unknown"
 
